@@ -2,6 +2,7 @@
 
 {% if execute %}
     {{print('[DBT] - Creating Snowpark procedure')}}
+    {% set store_procedure_txt = stored_procedure_gen() %}
     {% set results = run_query(store_procedure_txt) %}
     {% do results.print_table() %}
 {% endif %}

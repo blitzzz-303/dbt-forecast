@@ -18,9 +18,10 @@ def create_func_from_frame():
                                 .replace(sf_regis, sf_regis_content)
                                 .replace(sf_lib, sf_lib_content)
                                 .replace(python_func, python_func_content))
-    print(sf_full)
+    macro_path = os.path.join(MACRO_DBT_PROJECT, 'store_procedure_gen.sql')
+    print('created macro file at ', macro_path)
 
-    with open(os.path.join(MACRO_DBT_PROJECT, 'store_procedure_gen.sql'), 'w') as f:
+    with open(macro_path, 'w') as f:
         f.write(sf_full)
 
 def get_file_content(*args):
