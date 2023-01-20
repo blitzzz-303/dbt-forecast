@@ -1,0 +1,7 @@
+CREATE OR REPLACE PROCEDURE {{target.database}}.{{target.schema}}.prophet_predict(params varchar)
+returns variant
+language python
+runtime_version = 3.8
+packages = ('snowflake-snowpark-python', 'prophet', 'scikit-learn', 'pandas', 'numpy')
+handler = 'udf'
+as $$

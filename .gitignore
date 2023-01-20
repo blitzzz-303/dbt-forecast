@@ -1,0 +1,9 @@
+
+target/
+dbt_packages/
+logs/
+.DS_Store
+.dbt
+.ssh
+__pycache__/
+*.py[cod]

@@ -1,0 +1,6 @@
+def udf(session, params):
+    configs = eval(params)
+    configs['session'] = session
+    
+    p = batch_forecast(**configs)
+    return 'success'
