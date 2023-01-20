@@ -1,6 +1,6 @@
 {{ config(
     pre_hook=[
-      run_predict("{{ref('int_sds_train_country')}}", 'WEEK_DATE', 'STORE', 'WEEKLY_SALES')
+      run_predict("{{ref('INT_SDS_TRAIN_COUNTRY')}}", 'WEEK_DATE', 'STORE', 'WEEKLY_SALES')
     ]
 ) }}
 

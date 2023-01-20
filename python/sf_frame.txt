@@ -1,7 +1,11 @@
 {% macro create_stored_procedure()%}
 
-{% set store_procedure_txt = stored_procedure_gen() %}
-{{ print(store_procedure_txt) }}
+{% if execute %}
+    {{print('[DBT] - Creating Snowpark procedure')}}
+    {% set results = run_query(store_procedure_txt) %}
+    {% do results.print_table() %}
+{% endif %}
+
 {%- endmacro %}
 
 {% macro stored_procedure_gen() -%}

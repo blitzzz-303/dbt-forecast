@@ -20,7 +20,7 @@ def create_func_from_frame():
                                 .replace(python_func, python_func_content))
     print(sf_full)
 
-    with open(os.path.join(MACRO_DBT_PROJECT, 'snowpark_function.sql'), 'w') as f:
+    with open(os.path.join(MACRO_DBT_PROJECT, 'store_procedure_gen.sql'), 'w') as f:
         f.write(sf_full)
 
 def get_file_content(*args):
