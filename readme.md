@@ -9,8 +9,8 @@ For some reasons, this package is not compatiple with generate_schema_name from 
 
 Main data set we should use to test https://www.kaggle.com/code/aremoto/retail-sales-forecast/data?select=stores+data-set.csv (already included in seed)
 
-
-
+## Evaluation
+![Prophet evaluation](img/evaluation_store_1_2.png)
 
 
 ## Usage
