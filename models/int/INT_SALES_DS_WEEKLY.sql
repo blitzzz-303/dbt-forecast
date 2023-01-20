@@ -1,4 +1,5 @@
 select
+    concat(store, '#', dept) store_dept_pk,
     store,
     Dept,
     to_date(date, 'DD/MM/YYYY')::timestamp week_date,
