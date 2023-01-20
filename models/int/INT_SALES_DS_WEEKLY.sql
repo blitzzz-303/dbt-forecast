@@ -3,4 +3,4 @@ select
     Dept,
     to_date(date, 'DD/MM/YYYY')::timestamp week_date,
     weekly_Sales
-from {{ref('stg_sds_enhanced')}} sde
+from {{ref('STG_SALES_DS_ENHANCED')}} sde
