@@ -3,6 +3,7 @@ pd.options.mode.chained_assignment = None
 import multiprocessing
 from snowflake.snowpark import Session
 from prophet import Prophet
+import sys
 from sklearn.model_selection import ParameterGrid
 from sklearn.model_selection import train_test_split
 from concurrent.futures import ThreadPoolExecutor
@@ -101,16 +102,19 @@ class prophet_forecast:
     _max_workers = multiprocessing.cpu_count()
     _tt_split = 0.33
     _CHANGEPOINT_PRIOR_SCALE = [0.5]
-    _CHANGEPOINT_RANGE = [0.8]
-    _cap_quantile = .8
-    _floor_quantile = .2
+    _CHANGEPOINT_RANGE = [1]
+    _SEASONALITY_PRIOR_SCALE = [10]
+    _cap_quantile = .75
+    _floor_quantile = .25
 
     def __init__(s, **kwargs):
         s.__dict__.update(**kwargs)
 
     def forecast(s):
-        s.df['cap'] = s.df[s._label_fld].quantile(s._floor_quantile)
-        s.df['floor'] = s.df[s._label_fld].quantile(s._cap_quantile)
+        iqr = s.df[s._label_fld].quantile(s._cap_quantile) - s.df[s._label_fld].quantile(s._floor_quantile)
+        floor = s.df[s._label_fld].min() - iqr if s.df[s._label_fld].min() - iqr > 0 else 0
+        s.df['cap'] = s.df[s._label_fld].max() + iqr
+        s.df['floor'] = floor
         s.train, s.test, s.dt_col = s.train_test_dt_split()
         s.get_optimal_model()
         s.prophet_predict()
@@ -136,7 +140,6 @@ class prophet_forecast:
         df[df_pred.columns] = df_pred[df_pred.columns]
         df[s._params_FLD] = str(s.best_params)
         df[f'{s._label_fld}__PREDICT'] = df['yhat'].convert_dtypes()
-        # df['RMAE'] = ((df[s._label_fld] - df.yhat) ** 2).mean() ** .5
         df['CPU_used'] = s._max_workers
         s.df_pred = df.drop(columns=['ds', 'yhat'])
     
@@ -154,11 +157,12 @@ class prophet_forecast:
             pass
         train, valid, _, _ = train_test_split(s.train, s.train['y'],
                                                 test_size=s._tt_split, shuffle=False)
-        print(valid)
+                                                
         params_grid = {'seasonality_mode': ['multiplicative','additive'],
                         'changepoint_prior_scale': s._CHANGEPOINT_PRIOR_SCALE,
                         'growth': ['linear', 'logistic'],
                         'changepoint_range': s._CHANGEPOINT_RANGE,
+                        'seasonality_prior_scale': s._SEASONALITY_PRIOR_SCALE,
                         'daily_seasonality': [True, False],
                         'weekly_seasonality': [True, False],
                         'yearly_seasonality': [True, False]
@@ -191,9 +195,6 @@ class prophet_forecast:
             m.fit(train)
             preds = m.predict(valid)
             preds.index = valid.index
-            print(preds.yhat)
-            print(valid.y)
-            # mape = ((valid.y-preds.yhat).abs() / valid.y).mean()
             rmae = ((valid.y - preds.yhat) ** 2).mean() ** .5
             print('# ', idx)
             print(p)
@@ -203,4 +204,4 @@ class prophet_forecast:
             return {_RMAE_COL:s.error(), _params_COL:None}
 
     def error(s):
-        return 9999
+        return sys.maxsize
