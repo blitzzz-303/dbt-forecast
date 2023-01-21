@@ -102,7 +102,7 @@ class prophet_forecast:
     _max_workers = multiprocessing.cpu_count()
     _tt_split = 0.33
     _CHANGEPOINT_PRIOR_SCALE = [0.5]
-    _CHANGEPOINT_RANGE = [1]
+    _CHANGEPOINT_RANGE = [0.8]
     _SEASONALITY_PRIOR_SCALE = [10]
     _cap_quantile = .75
     _floor_quantile = .25
@@ -155,9 +155,8 @@ class prophet_forecast:
                     return
         except Exception:
             pass
-        train, valid, _, _ = train_test_split(s.train, s.train['y'],
-                                                test_size=s._tt_split, shuffle=False)
-                                                
+        _, valid, _, _ = train_test_split(s.train, s.train['y'],
+                                                test_size=s._tt_split, shuffle=False)      
         params_grid = {'seasonality_mode': ['multiplicative','additive'],
                         'changepoint_prior_scale': s._CHANGEPOINT_PRIOR_SCALE,
                         'growth': ['linear', 'logistic'],
@@ -170,7 +169,7 @@ class prophet_forecast:
     
         grid = ParameterGrid(params_grid)
 
-        tasks = ([(s.prophet_model(p), p, train, valid, f'{idx} / {len(grid)}') 
+        tasks = ([(s.prophet_model(p), p, s.train, valid, f'{idx} / {len(grid)}') 
                     for idx, p in enumerate(grid) if idx < s._trials or s._trials == -1])
 
         with ThreadPoolExecutor(max_workers=s._max_workers) as executor:

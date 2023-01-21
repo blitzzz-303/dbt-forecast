@@ -1,18 +1,20 @@
 ## Introduction
-dbt-sf-propeht is an experimental project to enable better, more user friendly forecast for Snowflake.
+dbt-forecast is an experimental project to enable better, more user friendly forecast experience for Snowflake.
 
 The forecast solution is defined as a Stored Procedure, run via Snowpark (Snowflake integrated python environment).
 
-This demo support 1 category for the forecast, which enable to forecast multiple product at one run. Thus, this enables user to have more granularity for analysis and improve overall accuracy.
+This demo supports one category for the forecast, that helps to enable forecast multiple product at one run. Ultimately, this feature allows user to access more granularity for analysis and improve overall accuracy.
 
-For some reasons, this package is not compatiple with generate_schema_name from dbt. This should be fixed in later release.
+For some reasons, this package is not compatiple with generate_schema_name from dbt. This should be fixed in later releases.
 
 Main data set we should use to test https://www.kaggle.com/code/aremoto/retail-sales-forecast/data?select=stores+data-set.csv (already included in seed)
 
 ## Evaluation
+### Weekly
 ![Prophet evaluation](img/evaluation_store_1_2.png)
 
-
+### Shaped to Monthly view
+![Prophet evaluation](img/evaluation_store_1_2_m.png)
 ## Usage
 
 1. Clone the repo
