@@ -23,7 +23,7 @@ as $$
 
 import pandas as pd
 pd.options.mode.chained_assignment = None
-import multiprocessing
+import multiprocessing, logging
 from snowflake.snowpark import Session
 from prophet import Prophet
 from sklearn.model_selection import ParameterGrid
@@ -51,7 +51,7 @@ class batch_forecast():
         s.__dict__.update(**kwargs)
         s.get_params_from_previous_run()
         s.get_df_from_sf(s.tbl_source)
-        s.convert_and_sort_timestamp_field()
+        s.sort_df_by_timestamp()
 
         categories = s.df[s._cat_fld].unique() if s._cat_fld in s.df else [None]
         df_output = pd.DataFrame()
@@ -84,32 +84,36 @@ class batch_forecast():
             print(df_output)
             print(df_output[s._params_FLD][0])
 
-    def get_df_from_sf(s, table_name):
-        if s.session is not None:
-            try:
-                s.df = s.session.table(table_name).to_pandas().copy()
-            except:
-                print(f'Table {table_name} does not exist')
-        else:
-            s.df = pd.read_csv(s._df_path)
 
-    def convert_and_sort_timestamp_field(s):
-        s.df[s._ts_fld] = s.df[s._ts_fld].astype('datetime64')
-        s.df.sort_values(by=[s._cat_fld, s._ts_fld], inplace=True)
-        s.df.reset_index(drop = True, inplace = True)
+    def get_df_from_sf(s, table_name='default_table_name'):
+        if s.session is None:
+            raise ValueError('Snowflake session is not connected')
+        
+        try:
+            s.df = s.session.table(table_name).to_pandas().copy()
+        except Exception as e:
+            logging.error(f'Error retrieving table {table_name} from Snowflake: {e}')
+            s.df = pd.read_csv(s._df_path)
+            logging.info(f'Table {table_name} loaded from local file')
+            
+        return s.df
+
+    def sort_df_by_timestamp(s):
+        s.df[s._ts_fld] = pd.to_datetime(s.df[s._ts_fld])
+        s.df.sort_values([s._cat_fld, s._ts_fld], inplace=True)
+        s.df.reset_index(drop=True, inplace=True)
 
     def get_params_from_previous_run(s):
         if s._params is not None:
             s._params = eval(s._params)
-            return
         elif s._USE_LAST_params and 'tbl_target' in s.__dict__:
             target_df = s.get_df_from_sf(s.tbl_target)
-            if target_df is not None and s._params_FLD in target_df and s._cat_fld in target_df:
-                s.previous_params = target_df.groupby(by=[s._cat_fld, s._params_FLD]).count().to_dict('records')
-            elif target_df is not None and s._params_FLD in target_df:
-                s.previous_params = {'generic': target_df[s._params_FLD].unique()}
-            else:
+            if target_df is None or s._params_FLD not in target_df:
                 s.previous_params = {}
+            elif s._cat_fld in target_df:
+                s.previous_params = target_df.groupby(by=[s._cat_fld, s._params_FLD]).count().to_dict('records')
+            else:
+                s.previous_params = {'generic': target_df[s._params_FLD].unique()}
         else:
             s.previous_params = {}
 
@@ -132,9 +136,11 @@ class prophet_forecast:
         s.__dict__.update(**kwargs)
 
     def forecast(s):
-        iqr = s.df[s._label_fld].quantile(s._cap_quantile) - s.df[s._label_fld].quantile(s._floor_quantile)
-        floor = s.df[s._label_fld].min() - iqr if s.df[s._label_fld].min() - iqr > 0 else 0
-        s.df['cap'] = s.df[s._label_fld].max() + iqr
+        _1st_quantile = s.df[s._label_fld].quantile(s._floor_quantile)
+        _3rd_quantile = s.df[s._label_fld].quantile(s._cap_quantile)
+        iqr = _3rd_quantile - _1st_quantile
+        floor = _1st_quantile - 1.5 * iqr if _1st_quantile - 1.5 * iqr > 0 else 0
+        s.df['cap'] = _3rd_quantile + 1.5 * iqr 
         s.df['floor'] = floor
         s.train, s.test, s.dt_col = s.train_test_dt_split()
         s.get_optimal_model()
@@ -215,16 +221,13 @@ class prophet_forecast:
             m.fit(train)
             preds = m.predict(valid)
             preds.index = valid.index
-            rmae = ((valid.y - preds.yhat) ** 2).mean() ** .5
-            print('# ', idx)
-            print(p)
-            print('rmae ----------- ', rmae)
-            return {_RMAE_COL:rmae, _params_COL:p}
-        except Exception:
-            return {_RMAE_COL:s.error(), _params_COL:None}
+            rmae = ((valid.y - preds.yhat) ** 2).mean() ** 0.5
+            print(f'# {idx} - rmae: {rmae} - params: {p}')
+            return {_RMAE_COL: rmae, _params_COL: p}
+        except Exception as e:
+            print(f'Error: {e}')
+            return {_RMAE_COL: None, _params_COL: None}
 
-    def error(s):
-        return sys.maxsize
 
 
     $$

@@ -1,6 +1,6 @@
 import pandas as pd
 pd.options.mode.chained_assignment = None
-import multiprocessing
+import multiprocessing, logging
 from snowflake.snowpark import Session
 from prophet import Prophet
 from sklearn.model_selection import ParameterGrid

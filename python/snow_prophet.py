@@ -1,6 +1,6 @@
 import pandas as pd
 pd.options.mode.chained_assignment = None
-import multiprocessing, logging, sys
+import multiprocessing, logging
 from snowflake.snowpark import Session
 from prophet import Prophet
 from sklearn.model_selection import ParameterGrid
@@ -193,15 +193,16 @@ class prophet_forecast:
     def prophet_helper(s, _args):
         return s.get_prophet_rmae_score(_args[0], _args[1], _args[2], _args[3], _args[4])
 
-    def get_prophet_rmae_score(m, train, valid, idx, p=None, rmae_col='rmae', params_col='params'):
+    def get_prophet_rmae_score(s, m, p, train, valid, idx,
+                        _RMAE_COL = 'rmae', _params_COL = 'params'):
         try:
             m.fit(train)
             preds = m.predict(valid)
             preds.index = valid.index
             rmae = ((valid.y - preds.yhat) ** 2).mean() ** 0.5
             print(f'# {idx} - rmae: {rmae} - params: {p}')
-            return {rmae_col: rmae, params_col: p}
+            return {_RMAE_COL: rmae, _params_COL: p}
         except Exception as e:
             print(f'Error: {e}')
-            return {rmae_col: None, params_col: None}
+            return {_RMAE_COL: None, _params_COL: None}
 
