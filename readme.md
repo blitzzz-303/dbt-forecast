@@ -10,11 +10,11 @@ For testing purposes, you can use the retail sales forecast dataset available on
 ## Prophet or ARIMA
 When choosing between Prophet and ARIMA for time series forecasting, it's important to consider the complexity and required expertise of each model.
 
-Prophet is easier to use and interpret, making it a more accessible option for those who are less familiar with time series forecasting. However, it is specifically designed for time series with strong trends and seasonality, so it may not perform well with other types of series.
+Prophet is a user-friendly and interpretable solution for time series forecasting, making it a more accessible option for those with limited knowledge in the field. However, it is optimized for time series with clear trends and seasonality and may not deliver optimal results for other types of series.
 
-On the other hand, ARIMA is a more complex model that requires a higher level of knowledge and expertise. Although it has greater flexibility, it can struggle with time series that have strong trends and seasonality.
+In contrast, ARIMA is a more complex model that demands advanced knowledge and expertise. While it offers greater flexibility, it may not perform well with time series that exhibit strong trends and seasonality.
 
-One weakness of Prophet is its handling of outliers. To address this issue, the current version of the project uses +-1.5 interquartiles for the first and third quantiles to deal with outliers.
+One limitation of Prophet is its handling of outliers. To overcome this, the current version of the project uses +-1.5 interquartiles for the first and third quantiles to manage outliers.
 
 ## Evaluation
 ### Weekly
