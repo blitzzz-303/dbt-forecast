@@ -19,11 +19,12 @@ def udf(session, params):
 class batch_forecast():
     _params = None
     sesion = None
+    df = None
     tbl_source = None
     _max_workers = multiprocessing.cpu_count()
-    _USE_LAST_params = True
+    _USE_LAST_PARAMS = True
     _label_fld = 'LABEL'
-    _params_FLD = 'PARAM'
+    _params_FLD = 'PARAMS'
     _holiday_FLD = 'COUNTRY'
     def __init__(s, **kwargs):
         s.__dict__.update(**kwargs)
@@ -36,19 +37,23 @@ class batch_forecast():
         for category in categories:
             if s._cat_fld in s.df:
                 df_filter = s.df[(s.df[s._cat_fld] == category) | (category is None)]
-                if category in s.previous_params:
-                    df_filter[s._params_FLD] = s.previous_params[category]
-                elif 'generic' in s.previous_params:
-                    df_filter[s._params_FLD] = str(s.previous_params['generic'])
-                df_category = df_filter
+                try:
+                    previous_params = s.previous_params.get(s._params_FLD).get(category)
+                    generic_params = s.previous_params.get(s._params_FLD).get('generic')
+                    if not previous_params is None:
+                        df_filter[s._params_FLD] = previous_params
+                    elif not generic_params is None:
+                        df_filter[s._params_FLD] = str(generic_params)
+                except Exception as e:
+                    print(f'Error: {e}')
             else:
-                df_category = s.df
+                df_filter = s.df
             
             holiday = s.df[s._holiday_FLD][0] if s._holiday_FLD in s.df else None
 
             pf = prophet_forecast(**s.__dict__)
             pf._params_FLD = s._params_FLD
-            pf.df = df_category
+            pf.df = df_filter
             pf._holiday = holiday
             df_pred = pf.forecast()
             df_output = pd.concat([df_output, df_pred])
@@ -56,24 +61,15 @@ class batch_forecast():
         if s.session != None:
             return_df = s.session.create_dataframe(df_output)
             return_df.write.mode("overwrite").save_as_table(s.tbl_target)
-        else:
-            file_output = s._df_path + '__predict.csv'
-            df_output.to_csv(file_output)
-            print(df_output)
-            print(df_output[s._params_FLD][0])
 
 
     def get_df_from_sf(s, table_name='default_table_name'):
         if s.session is None:
             raise ValueError('Snowflake session is not connected')
-        
         try:
             s.df = s.session.table(table_name).to_pandas().copy()
         except Exception as e:
             logging.error(f'Error retrieving table {table_name} from Snowflake: {e}')
-            s.df = pd.read_csv(s._df_path)
-            logging.info(f'Table {table_name} loaded from local file')
-            
         return s.df
 
     def sort_df_by_timestamp(s):
@@ -84,12 +80,13 @@ class batch_forecast():
     def get_params_from_previous_run(s):
         if s._params is not None:
             s._params = eval(s._params)
-        elif s._USE_LAST_params and 'tbl_target' in s.__dict__:
+        elif s._USE_LAST_PARAMS and 'tbl_target' in s.__dict__:
             target_df = s.get_df_from_sf(s.tbl_target)
             if target_df is None or s._params_FLD not in target_df:
                 s.previous_params = {}
             elif s._cat_fld in target_df:
-                s.previous_params = target_df.groupby(by=[s._cat_fld, s._params_FLD]).count().to_dict('records')
+                target_df = target_df.set_index(s._cat_fld)
+                s.previous_params = target_df[[s._params_FLD]].to_dict()
             else:
                 s.previous_params = {'generic': target_df[s._params_FLD].unique()}
         else:
@@ -143,23 +140,20 @@ class prophet_forecast:
         df_pred.index = s.df.index
         df = s.df
         df[df_pred.columns] = df_pred[df_pred.columns]
-        df[s._params_FLD] = str(s.best_params)
+        df[s._params_FLD] = str(s._params)
         df[f'{s._label_fld}__PREDICT'] = df['yhat'].convert_dtypes()
         df['CPU_used'] = s._max_workers
         s.df_pred = df.drop(columns=['ds', 'yhat'])
     
     def get_optimal_model(s):
-        try:
-            if s._params_FLD in s.df:
-                print(s.df[s._params_FLD][0])
-                previous_params = eval(s.df[s._params_FLD][0])
-                if previous_params is not None or previous_params != '':
-                    previous_params = eval(previous_params)
-                    s._params = previous_params
-                    s.best_model = s.prophet_model(**s._params)
-                    return
-        except Exception:
-            pass
+        if s._params_FLD in s.df:
+            previous_params = eval(s.df[s._params_FLD].iloc[0])
+            if isinstance(previous_params, dict):
+                s._params = previous_params
+                s.best_model = s.prophet_model(s._params)
+                print('found former parameters for this category')
+                return
+
         _, valid, _, _ = train_test_split(s.train, s.train['y'],
                                                 test_size=s._tt_split, shuffle=False)      
         params_grid = {'seasonality_mode': ['multiplicative','additive'],
@@ -181,9 +175,9 @@ class prophet_forecast:
             results = list(executor.map(s.prophet_helper, tasks))
             model_parameters = pd.DataFrame(results)
 
-        s.best_params = (model_parameters.sort_values(by=['rmae'])
-                                            .reset_index(drop=True)['params'][0])
-        s.best_model = s.prophet_model(s.best_params)
+        s._params = (model_parameters.sort_values(by=['RMAE'])
+                                            .reset_index(drop=True)['PARAMS'][0])
+        s.best_model = s.prophet_model(s._params)
 
     def prophet_model(s, p):
         m = Prophet(**p)
@@ -194,7 +188,7 @@ class prophet_forecast:
         return s.get_prophet_rmae_score(_args[0], _args[1], _args[2], _args[3], _args[4])
 
     def get_prophet_rmae_score(s, m, p, train, valid, idx,
-                        _RMAE_COL = 'rmae', _params_COL = 'params'):
+                        _RMAE_COL = 'RMAE', _params_COL = 'PARAMS'):
         try:
             m.fit(train)
             preds = m.predict(valid)

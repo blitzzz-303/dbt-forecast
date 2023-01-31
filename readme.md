@@ -16,7 +16,6 @@ On the other hand, ARIMA is a more complex model that requires a higher level of
 
 One weakness of Prophet is its handling of outliers. To address this issue, the current version of the project uses +-1.5 interquartiles for the first and third quantiles to deal with outliers.
 
-
 ## Evaluation
 ### Weekly
 ![Prophet evaluation](img/evaluation_store_1_2.png)
@@ -40,6 +39,26 @@ One weakness of Prophet is its handling of outliers. To address this issue, the 
 5. Start testing the function by running the following command
     ``dbt build``
 
+
+## Obtaining Optimal Parameters
+
+The parameters for the model are optimized using grid search, where a set of predefined values are iterated over to find the best set of parameters. The grid search is conducted by dividing the dataset into a train and test set, with a ratio of 0.67:0.33. The model is only allowed to capture 80% of the series to prevent overfitting.
+
+For each category, the model will have its own set of optimal parameters, which are found by iterating through the following parameter grid:
+
+```
+params_grid = {
+    'seasonality_mode': ['multiplicative', 'additive'],
+    'changepoint_prior_scale': [0.5],
+    'growth': ['linear', 'logistic'],
+    'changepoint_range': [0.8],
+    'seasonality_prior_scale': [10],
+    'daily_seasonality': [True, False],
+    'weekly_seasonality': [True, False],
+    'yearly_seasonality': [True, False]
+}
+```
+
 ## Extra feature
 
 ### Support country holiday in prediction
@@ -47,15 +66,3 @@ In order to use this feature, please include ``COUNTRY`` as a field name from yo
 
 ### Reuse the last best params for future runs (still testing)
 To improve the performance, the function re-use the best params from previous run, instead running simulation to search for best params again (this process is very expensive).
-
-## Extra note
-Param grid used in Snowpark (~32 simulation for each category)
-
-    params_grid = {'seasonality_mode': ['multiplicative','additive'],
-                    'changepoint_prior_scale': s._CHANGEPOINT_PRIOR_SCALE,
-                    'growth': ['linear', 'logistic'],
-                    'changepoint_range': s._CHANGEPOINT_RANGE,
-                    'daily_seasonality': [True, False],
-                    'weekly_seasonality': [True, False],
-                    'yearly_seasonality': [True, False]
-                    }

@@ -6,4 +6,5 @@ logs/
 .dbt
 .ssh
 __pycache__/
+snow_session.json
 *.py[cod]
