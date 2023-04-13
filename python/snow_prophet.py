@@ -11,7 +11,6 @@ from concurrent.futures import ThreadPoolExecutor
 def udf(session, params):
     configs = eval(params)
     configs['session'] = session
-    
     p = batch_forecast(**configs)
     return 'success'
 
@@ -32,23 +31,26 @@ class batch_forecast():
         s.get_df_from_sf(s.tbl_source)
         s.sort_df_by_timestamp()
 
+        # get all from the dataframe
         categories = s.df[s._cat_fld].unique() if s._cat_fld in s.df else [None]
         df_output = pd.DataFrame()
         for category in categories:
             if s._cat_fld in s.df:
+                # filter by category
                 df_filter = s.df[(s.df[s._cat_fld] == category) | (category is None)]
                 try:
                     previous_params = s.previous_params.get(s._params_FLD).get(category)
                     generic_params = s.previous_params.get(s._params_FLD).get('generic')
-                    if not previous_params is None:
-                        df_filter[s._params_FLD] = previous_params
-                    elif not generic_params is None:
-                        df_filter[s._params_FLD] = str(generic_params)
+                    if previous_params is not None:
+                        s._params = previous_params
+                    elif generic_params is not None:
+                        s._params = generic_params
                 except Exception as e:
                     print(f'Error: {e}')
             else:
                 df_filter = s.df
             
+            # holiday integration: if the country is in the dataframe, use it
             holiday = s.df[s._holiday_FLD][0] if s._holiday_FLD in s.df else None
 
             pf = prophet_forecast(**s.__dict__)
@@ -113,9 +115,10 @@ class prophet_forecast:
     def forecast(s):
         _1st_quantile = s.df[s._label_fld].quantile(s._floor_quantile)
         _3rd_quantile = s.df[s._label_fld].quantile(s._cap_quantile)
+        # measure interquartile range, exclude outliers
         iqr = _3rd_quantile - _1st_quantile
         floor = _1st_quantile - 1.5 * iqr if _1st_quantile - 1.5 * iqr > 0 else 0
-        s.df['cap'] = _3rd_quantile + 1.5 * iqr 
+        s.df['cap'] = _3rd_quantile + 1.5 * iqr
         s.df['floor'] = floor
         s.train, s.test, s.dt_col = s.train_test_dt_split()
         s.get_optimal_model()
