@@ -1,11 +1,9 @@
 ## Introduction
-dbt-forecast is an experimental project aimed at providing a more user-friendly and accurate forecast experience for Snowflake. The forecast solution is implemented as a Stored Procedure within Snowflake's integrated Python environment (Snowpark).
+dbt-forecast is an experimental project aimed at providing a more user-friendly and accurate forecast experience for Snowflake. The forecast solution is implemented as a UDF (user define function) within Snowflake's integrated Python environment (Snowpark).
 
-The current version of the project supports forecasting for one category, allowing the user to forecast multiple products with a single run. In the future, this feature will be further enhanced to provide more granular analysis and improve overall accuracy.
+The current version of the project supports forecasting for one category, allowing the user to forecast multiple products with a single run. The forecast is generated using Facebook's Prophet, a time series forecasting tool that is optimized for time series with clear trends and seasonality.
 
-Please note that the package is not currently compatible with the generate_schema_name feature in dbt, but this issue will be addressed in future releases.
-
-For testing purposes, you can use the retail sales forecast dataset available on Kaggle (https://www.kaggle.com/code/aremoto/retail-sales-forecast/data?select=stores+data-set.csv). The dataset is already included in the seed.
+For testing purposes, you can use the retail sales forecast dataset available on Kaggle (https://www.kaggle.com/datasets/manjeetsingh/retaildataset?resource=download). The dataset is already included in the seed.
 
 ## Prophet or ARIMA
 When choosing between Prophet and ARIMA for time series forecasting, it's important to consider the complexity and required expertise of each model.
@@ -32,11 +30,8 @@ One limitation of Prophet is its handling of outliers. To overcome this, the cur
 3. Start the Docker container using the following command
     
     ``docker-compose run --rm sf``
-    
-4. (Optional) To generate the Snowpark function, after logging into the container, use the following command
-    ``python scripts/sf_func_gen.py``
 
-5. Start testing the function by running the following command
+4. Start testing the function by running the following command
     ``dbt build``
 
 

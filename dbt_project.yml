@@ -14,9 +14,8 @@ target-path: "target"
 clean-targets:
   - "target"
 
-on-run-start: "{{ create_stored_procedure() }}"
-
 models:
+  use_anonymous_sproc: True
   snowpark_learn:
     materialized: view
     stg:
