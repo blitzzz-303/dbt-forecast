@@ -50,7 +50,7 @@ class snowpark_forecast():
         # get the most frequent delta days
         delta_days = df['delta_days'].value_counts().index[0]
         # if the most frequent delta days is between 1 and 3, then weekly seasonality is probably present
-        s.weekly_seasonality = [True, False] if delta_days > 6 and delta_days < 8 else [False]
+        s.weekly_seasonality = [True, False] if delta_days > 5 and delta_days < 9 else [False]
 
     def process(s):
         s.start_time = datetime.datetime.now()
@@ -125,7 +125,8 @@ class snowpark_forecast():
                         'seasonality_prior_scale': s._SEASONALITY_PRIOR_SCALE,
                         'daily_seasonality': s.daily_seasonality,
                         'weekly_seasonality': s.weekly_seasonality,
-                        'yearly_seasonality': [True, False]
+                        'yearly_seasonality': [True, False],
+                        'uncertainty_samples': [None]
                         }
     
         grid = ParameterGrid(params_grid)
@@ -139,6 +140,7 @@ class snowpark_forecast():
 
         s.best_params = (model_parameters.sort_values(by=['RMAE'])
                                             .reset_index(drop=True)['PARAMS'][0])
+        s.best_params['uncertainty_samples'] = True
         s.RMAE_score = (model_parameters.sort_values(by=['RMAE'])['RMAE'][0])
         s.MAPE_score = (model_parameters.sort_values(by=['RMAE'])['MAPE'][0])
         s.best_model = s.prophet_model(s.best_params)
@@ -182,6 +184,7 @@ class snowpark_forecast():
             return {_RMAE_COL: None, _MAPE_COL: None, _params_COL: None}
 
 def model(dbt, session):
+    # load python libraries
     dbt.config(
         packages = ["joblib", "pandas", "prophet", "scikit-learn"]
     )

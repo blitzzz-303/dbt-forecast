@@ -7,7 +7,7 @@ def model(dbt, session):
     dbt.config(
         packages = ["joblib", "pandas", "prophet", "scikit-learn", "snowflake-snowpark-python"]
     )
-    ref_df = dbt.ref("INT_SALES_DS_EVALUATE").to_pandas()
+    ref_df = dbt.ref("INT_SALES_TRAIN").to_pandas()
     # get all files from stage
     stage_models = session.sql("list @INT_SALES_DS_PREDICT").collect()
     stage_models = [x['name'] for x in stage_models]
@@ -36,26 +36,19 @@ def model(dbt, session):
         # rename field DS to ds and Y to y and convert to proper data type
         df.rename(columns={'DS': 'ds', 'Y': 'y'}, inplace=True)
         df['ds'] = pd.to_datetime(df['ds'])
-        df['y'] = df['y'].astype(float)
+        df['y'] = 0
 
         # if floor and cap are not provided, Prophet will use 0 and infinity
-        if 'FLOOR' in df.columns:
+        if 'FLOOR' in df.columns and 'CAP' in df.columns:
             df['floor'] = df['FLOOR'].astype(float)
-        else:
-            df['floor'] = 0
-        if 'CAP' in df.columns:
             df['cap'] = df['CAP'].astype(float)
         else:
+            df['floor'] = 0
             df['cap'] = 1000000
-        # filename = f'{category}__INT_SALES_DS_PREDICT'
-        # pipeline = read_file(filename)
-        # pred = pipeline.predict(df)
-        # return pred['yhat'].astype(str)
 
         def predict(_dict = {}):
             df = pd.io.json.json_normalize(_dict)
             category = df['STORE_DEPT_PK'][0]
-            df.drop(columns=['STORE_DEPT_PK'], inplace=True)
             filename = f'{category}__INT_SALES_DS_PREDICT'
             pipeline = read_file(filename)
             pred = pipeline.predict(df)

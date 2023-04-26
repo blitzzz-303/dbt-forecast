@@ -14,7 +14,16 @@ target-path: "target"
 clean-targets:
   - "target"
 
+# define model variables
+vars:
+  stores: "1, 2, 3, 4"
+  depts: "1, 2"
+  test_date: "2012-01-01"
+
 models:
+  +persist_docs:
+    relation: true
+    columns: true
   use_anonymous_sproc: True
   snowpark_learn:
     materialized: view

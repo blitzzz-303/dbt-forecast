@@ -1,6 +1,8 @@
-select
+SELECT
     store_dept_pk,
     week_date,
-    iff(week_date < '2012-01-01', weekly_Sales, null) weekly_Sales
-from {{ref('INT_SALES_DS_WEEKLY')}}
-where Store in (1, 2, 3, 4) and Dept in (1, 2)
+    iff(week_date < '{{ var('test_date') }}'::date, weekly_Sales, null) weekly_Sales
+FROM {{ref('INT_SALES_DS_WEEKLY')}}
+WHERE 
+    ARRAY_CONTAINS(store::variant, SPLIT('{{ var('stores') }}', ','))
+    AND ARRAY_CONTAINS(dept::variant, SPLIT('{{ var('depts') }}', ','))
