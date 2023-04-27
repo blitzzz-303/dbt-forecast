@@ -6,7 +6,7 @@ warn_default_conf: &warn_default_conf
   store_failures: true
 
 models:
-  - name: INT_SALES_TRAIN
+  - name: INT_PROPHET_TRAIN
     description: training & storing model's score & parameters
     tests:
       - dbt_utils.expression_is_true:
@@ -19,8 +19,12 @@ models:
           mean absolute percentage error
       - name: RMSE
       - name: params
-  - name: SALES_EVALUATE
+  - name: PROPHET_EVALUATE
     description: sales evaluation table
+    tests:
+      - dbt_utils.expression_is_true:
+          config: *warn_default_conf
+          expression: "abs(sales_predict - weekly_sales) / weekly_sales >= 0.2"
     columns:
       - name: store
         description: |

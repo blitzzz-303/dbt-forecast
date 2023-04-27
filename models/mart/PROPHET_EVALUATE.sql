@@ -1,3 +1,5 @@
+
+ -- depends_on: {{ ref('INT_PROPHET_UDF') }}
 WITH sale_and_predict AS (
     SELECT
         store_dept_pk,
@@ -22,7 +24,9 @@ WITH sale_and_predict AS (
         pred:yhat_lower::float sales_lower,
         pred:yhat_upper::float sales_upper
     FROM {{ ref('INT_SALES_DS_WEEKLY') }} W
-    WHERE EXISTS(SELECT * FROM {{ ref('INT_SALES_DS_TRAIN') }} T WHERE W.store_dept_pk = T.store_dept_pk)
+    WHERE 
+        store in ({{ var('stores')}})
+        AND dept in ({{ var('depts')}})
 )
 SELECT
     * EXCLUDE (pred)
