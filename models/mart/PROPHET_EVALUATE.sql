@@ -1,5 +1,10 @@
 
- -- depends_on: {{ ref('INT_PROPHET_UDF') }}
+-- depends_on: {{ ref('INT_PROPHET_UDF') }}
+{{
+    config(
+        materialized='view'
+    )
+}}
 WITH sale_and_predict AS (
     SELECT
         store_dept_pk,
