@@ -1,0 +1,50 @@
+version: 2
+
+warn_default_conf: &warn_default_conf
+  severity: warn
+  warn_if: '>1'
+  store_failures: true
+
+models:
+  - name: INT_PROPHET_TRAIN
+    description: training & storing model's score & parameters
+    tests:
+      - dbt_utils.expression_is_true:
+          config: *warn_default_conf
+          expression: "MAPE <= 0.2"
+    columns:
+      - name: category
+      - name: MAPE
+        description: |
+          mean absolute percentage error
+      - name: RMSE
+      - name: params
+  - name: PROPHET_EVALUATE
+    description: sales evaluation table
+    tests:
+      - dbt_utils.expression_is_true:
+          config: *warn_default_conf
+          expression: "abs(sales_predict - weekly_sales) / weekly_sales >= 0.2"
+    columns:
+      - name: store
+        description: |
+          store id
+      - name: dept
+        description: |
+          department id
+      - name: weekly_sales
+        description: |
+          weekly sales amount
+      - name: week_date 
+        description: |
+          date field, already converted to week
+      - name: sales_upper
+        description: |
+          upper bound of sales amount
+      - name: sales_lower
+        description: |
+          lower bound of sales amount
+      - name: sales_predict
+        description: |
+          predict sales amount, use this field for model evaluation
+          or when the PROMPT has PREDICT keyword in it

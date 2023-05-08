@@ -3,8 +3,27 @@ services:
   sf:
     build: ./
     command: /bin/bash
+    entrypoint: ["/bin/sh", "-c"]
+    env_file:
+      - docker.env
+    ports:
+      - "8501:8501"
     volumes:
       - $HOME/.aws:/root/.aws
       - ./.dbt:/root/.dbt
       - ./.ssh:/root/.ssh
-      - ./:/dbt
+      - ./:/sf
+  streamlit:
+    build: ./
+    env_file:
+      - docker.env
+    ports:
+      - "8501:8501"
+    volumes:
+      - $HOME/.aws:/root/.aws
+      - ./.dbt:/root/.dbt
+      - ./.ssh:/root/.ssh
+      - ./:/sf
+    environment:
+      - USER_ID=1000
+      - GROUP_ID=1000

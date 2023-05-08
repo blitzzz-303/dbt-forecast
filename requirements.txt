@@ -1,6 +1,7 @@
 snowflake-connector-python
 pandas
 xgboost
+joblib
 snowflake-snowpark-python
 snowflake-connector-python[pandas]
 scikit-learn
@@ -9,3 +10,6 @@ dbt-snowflake
 MarkupSafe==2.0.1
 jinja2
 prophet
+streamlit
+openai
+plotly
