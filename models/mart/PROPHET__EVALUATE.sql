@@ -1,5 +1,5 @@
 
--- depends_on: {{ ref('INT_PROPHET_UDF') }}
+-- depends_on: {{ ref('INT_PROPHET__UDF') }}
 {{
     config(
         materialized='view'

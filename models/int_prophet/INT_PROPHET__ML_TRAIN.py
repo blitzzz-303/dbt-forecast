@@ -138,7 +138,7 @@ class SnowparkForecast:
 
 def model(dbt, session):
     dbt.config(packages=["cloudpickle", "joblib", "pandas", "prophet", "scikit-learn"])
-    ref_df = dbt.ref("INT_SALES_TRAIN").to_pandas()
+    ref_df = dbt.ref("INT_PROPHET__SALES_TRAIN").to_pandas()
     ref_df.rename(columns={'WEEKLY_SALES': 'y'}, inplace=True)
 
     categories = ref_df['STORE_DEPT_PK'].unique()

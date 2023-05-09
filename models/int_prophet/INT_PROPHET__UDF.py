@@ -6,7 +6,7 @@ def model(dbt, session):
     dbt.config(
         packages = ["cloudpickle", "pandas", "prophet", "snowflake-snowpark-python"]
     )
-    ref_df = dbt.ref("INT_PROPHET_TRAIN").to_pandas()
+    ref_df = dbt.ref("INT_PROPHET__ML_TRAIN")
     # get all files from stage
     stage_models = session.sql("list @HT_PROPHET_MODELS").collect()
     stage_models = [x['name'] for x in stage_models]
