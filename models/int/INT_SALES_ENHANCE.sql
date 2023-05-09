@@ -11,6 +11,6 @@ SELECT
     feature.isholiday,
     store.type,
     store.size
-FROM {{ref('STG_SALE')}} sale
-    LEFT JOIN {{ref('STG_STORE')}} store USING (store)
-    LEFT JOIN {{ref('STG_FEATURE')}} feature USING (store, week_date)
+FROM {{ ref('STG_SALE') }} sale
+    LEFT JOIN {{ ref('STG_STORE') }} store USING (store)
+    LEFT JOIN {{ ref('STG_FEATURE') }} feature USING (store, week_date)

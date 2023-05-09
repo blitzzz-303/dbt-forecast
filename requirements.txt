@@ -5,7 +5,7 @@ joblib
 snowflake-snowpark-python
 snowflake-connector-python[pandas]
 scikit-learn
-dbt-core==1.3.1
+dbt-core==1.5.0
 dbt-snowflake
 MarkupSafe==2.0.1
 jinja2
@@ -13,5 +13,5 @@ prophet
 streamlit
 openai
 plotly
-sqlfluff==1.4.5
-sqlfluff-templater-dbt==1.4.5
+sqlfluff==2.1.0
+sqlfluff-templater-dbt==2.1.0

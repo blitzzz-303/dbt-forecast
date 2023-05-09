@@ -21,6 +21,7 @@ vars:
   test_date: "2012-01-01"
 
 models:
+  materialized: table
   +persist_docs:
     relation: true
     columns: true
@@ -29,9 +30,3 @@ models:
     materialized: view
     stg:
       materialized: view
-      tables:
-        - name: stg_sales_sample
-    int:
-      materialized: table
-      tables:
-        - name: int_sales_sample
