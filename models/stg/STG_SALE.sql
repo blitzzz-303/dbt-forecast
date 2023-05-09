@@ -1,8 +1,9 @@
-with sale_cte as (
-    select
+WITH sale_cte AS (
+    SELECT
         *,
         to_date(date, 'DD/MM/YYYY')::timestamp week_date,
         concat(store, '#', dept) store_dept_pk
-    from {{ref('ds2_sales_dataset')}} sale
+    FROM {{ref('ds2_sales_dataset')}}
 )
-select * from sale_cte
+
+SELECT * FROM sale_cte

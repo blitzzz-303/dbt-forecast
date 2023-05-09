@@ -1,6 +1,6 @@
-with store_cte as (
-    select
-        *
-    from {{ref('ds2_store_dataset')}} store
+WITH store_cte AS (
+    SELECT *
+    FROM {{ref('ds2_store_dataset')}}
 )
-select * from store_cte
+
+SELECT * FROM store_cte

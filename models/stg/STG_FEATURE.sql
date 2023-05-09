@@ -1,7 +1,8 @@
-with feature_cte as (
-    select
-        * exclude (date),
+WITH feature_cte AS (
+    SELECT
+        * EXCLUDE (date),
         to_date(date, 'DD/MM/YYYY')::timestamp week_date
-    from {{ref('ds2_feature_dataset')}} feature
+    FROM {{ref('ds2_feature_dataset')}}
 )
-select * from feature_cte
+
+SELECT * FROM feature_cte
