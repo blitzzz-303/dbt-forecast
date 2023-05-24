@@ -8,3 +8,14 @@ logs/
 __pycache__/
 snow_session.json
 *.py[cod]
+.vscode
+docker.env
+myenv
+data.csv
+*.test
+streamlit/embedding_model
+streamlit/examples
+streamlit/gpt_responses
+streamlit/programing_language
+*.zip
+gluonts/

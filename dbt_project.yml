@@ -14,16 +14,19 @@ target-path: "target"
 clean-targets:
   - "target"
 
-on-run-start: "{{ create_stored_procedure() }}"
+# define model variables
+vars:
+  stores: "1, 2, 3, 4"
+  depts: "1, 2"
+  test_date: "2012-01-01"
 
 models:
+  materialized: table
+  +persist_docs:
+    relation: true
+    columns: true
+  use_anonymous_sproc: True
   snowpark_learn:
-    materialized: view
+    materialized: table
     stg:
       materialized: view
-      tables:
-        - name: stg_sales_sample
-    int:
-      materialized: table
-      tables:
-        - name: int_sales_sample

@@ -1,0 +1,3 @@
+SELECT
+    *
+FROM {{ref('INT_SALES_ENHANCE')}}
