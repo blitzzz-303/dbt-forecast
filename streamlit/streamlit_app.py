@@ -13,7 +13,6 @@ st.set_page_config(
 )
 
 
-
 user_prompt = st.text_input('Write your database inquiry in natural language')
 
 if user_prompt.strip() == '':
@@ -59,12 +58,12 @@ filtered_df = df[(df["WEEK_DATE"] >= start_date)
                  & (df["STORE_DEPT_PK"] == selected_store)]
 
 pred = v.generate_predict_viz(filtered_df)
-st.plotly_chart(pred)
+st.plotly_chart(pred, use_container_width=True)
 
 h = v.generate_holiday_chart(filtered_df)
-st.plotly_chart(h)
+st.plotly_chart(h, use_container_width=True)
 
 p = v.generate_temp_line_chart(filtered_df)
-st.plotly_chart(p)
+st.plotly_chart(p, use_container_width=True)
 
 st.balloons()

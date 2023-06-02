@@ -98,7 +98,7 @@ class gpt_utils():
 
     def embed_query(self, query):
         if not hasattr(self, 'embedding_model'):
-            model_dir = "./embedding_model"
+            model_dir = "embedding_model"
             # get current directory
             current_dir = os.path.dirname(os.path.realpath(__file__))
             # get the model directory

@@ -2,6 +2,7 @@ import pandas as pd
 import plotly as plotly
 import plotly.graph_objects as go
 
+chart_height = 500
 # given this dataframe structure, make a line chart with plotly
 # use separate scale for each measure
 # WEEKLY_SALES	float64
@@ -17,12 +18,13 @@ def generate_temp_line_chart(df):
     mode='lines',
     fill='tozeroy',
     yaxis='y2',
-    line=dict(color="rgba(255, 213, 128, 0.2)"),
+    line=dict(color="rgba(255, 213, 128, 1)"),
     name='temperature'))
     fig.update_layout(title=f'Weekly Sales and Temperature for {df["STORE_DEPT_PK"].unique()[0]}',
     xaxis_title='Date',
     yaxis=dict(title='Sales'),
-    yaxis2=dict(title='Temperature',overlaying='y',side='right'))
+    yaxis2=dict(title='Temperature',overlaying='y',side='right'),
+    height=chart_height)
     return fig
 
 # given this dataframe structure, make a line chart with plotly
@@ -45,12 +47,13 @@ def generate_holiday_chart(df):
     mode='lines',
     fill='tozeroy',
     yaxis='y2',
-    line=dict(color="rgba(144, 238, 144 ,0.2)"),
+    line=dict(color="rgba(144, 238, 144 ,0.7)"),
     name='holiday'))
     fig.update_layout(title=f'Weekly Sales and Holiday for {df["STORE_DEPT_PK"].unique()[0]}',
     xaxis_title='Date',
     yaxis=dict(title='Sales'),
-    yaxis2=dict(title='Holiday',overlaying='y',side='right'))
+    yaxis2=dict(title='Holiday',overlaying='y',side='right'),
+    height=chart_height)
     return fig
 
 
@@ -68,9 +71,9 @@ def generate_predict_viz(df):
     fig = fig = plotly.tools.make_subplots(rows=1, cols=1)
 
     fig.add_trace(go.Scatter(x=filtered_df["WEEK_DATE"], y=filtered_df["WEEKLY_SALES"], name="Weekly Sales", mode="lines"))
-    fig.add_trace(go.Scatter(x=filtered_df_predict["WEEK_DATE"], y=filtered_df_predict["WEEKLY_SALE_PREDICT"], name="Predicted Sales", mode="markers+lines", line=dict(dash="dot")))
-    fig.add_trace(go.Scatter(x=filtered_df_predict["WEEK_DATE"], y=filtered_df_predict["WEEKLY_SALE_PREDICT_UPPER"], mode="lines", name="Upper Range", line=dict(color="rgba(144, 238, 144 ,0.2)")))
-    fig.add_trace(go.Scatter(x=filtered_df_predict["WEEK_DATE"], y=filtered_df_predict["WEEKLY_SALE_PREDICT_LOWER"], mode="lines", name="Lower Range", line=dict(color="rgba(144, 238, 144 ,0.2)"), fill="tonexty"))
+    fig.add_trace(go.Scatter(x=filtered_df_predict["WEEK_DATE"], y=filtered_df_predict["WEEKLY_SALE_PREDICT"], name="Predicted Sales", mode="markers+lines", line=dict(dash="dot", color="rgba(194, 24, 7, 1.0)")))
+    fig.add_trace(go.Scatter(x=filtered_df_predict["WEEK_DATE"], y=filtered_df_predict["WEEKLY_SALE_PREDICT_UPPER"], mode="lines", name="Upper Range", line=dict(color="rgba(144, 238, 144 ,0.7)")))
+    fig.add_trace(go.Scatter(x=filtered_df_predict["WEEK_DATE"], y=filtered_df_predict["WEEKLY_SALE_PREDICT_LOWER"], mode="lines", name="Lower Range", line=dict(color="rgba(144, 238, 144 ,0.7)"), fill="tonexty"))
 
     fig.update_traces(selector=dict(name="Predicted Sales"), opacity=0.8)
     fig.update_traces(selector=dict(name="Upper Range"), opacity=0.5)
@@ -78,6 +81,6 @@ def generate_predict_viz(df):
 
     filtered_df_predict['WEEKLY_SALE_PREDICT'] = filtered_df_predict['WEEKLY_SALE_PREDICT'].round(0)
     fig.update_layout(title=f"Weekly Sales vs Predicted Sales for {selected_store}",
-                      xaxis_title="Week Date", yaxis_title="Sales", height=400)
+                      xaxis_title="Week Date", yaxis_title="Sales", height=chart_height)
 
     return fig

@@ -21,11 +21,39 @@ models:
           expression: "MAPE <= 0.1"
     columns:
       - name: category
+        tests:
+          - relationships:
+              to: ref('INT_PROPHET__SALES_TRAIN')
+              field: store_dept_pk
+        description: |
+          model category, created by combining store # and dept #
+      - name: MSE
+        description: |
+          mean squared error (main metric), formula: sum((predict - actual)^2) / n
       - name: MAPE
         description: |
-          mean absolute percentage error
+          mean absolute percentage error, formula: sum(abs(predict - actual) / actual) / n
       - name: RMSE
+        description: |
+          root mean squared error, formula: sqrt(sum((predict - actual)^2) / n)
       - name: params
+        description: |
+          model best parameters, data sample: {"changepoint_prior_scale": 0.05, "seasonality_prior_scale": 0.05}
+      - name: training_time_second
+        description: |
+          model training time (in seconds)
+      - name: max_workers
+        description: |
+          number of workers used for training
+      - name: train_at
+        description: |
+          training time
+      - name: holiday
+        description: |
+          country holiday parameter (optional)
+      - name: memory
+        description: |
+          cluster memory (unable to track atm)
   - name: PROPHET__EVALUATE
     description: sales evaluation table
     tests:
